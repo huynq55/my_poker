@@ -1,5 +1,6 @@
 import itertools
 import random
+from deuces import Evaluator, Card
 
 RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
 SUITS = ["c", "d", "h", "s"]
@@ -49,31 +50,42 @@ for column_index, column in enumerate(["2", "3", "4", "5", "6", "7", "8", "9", "
     print(hands_to_cluster[hand])
   print("\n")
 
-NUM_SAMPLES = 1000
+
+evaluator = Evaluator()
 
 def precompute_ochs_features():
   ochs_table = {}
+  count_private_card = 0
   for private_card in all_hands:
     deck = [RANK + SUIT for SUIT in SUITS for RANK in RANKS]
     deck.remove(private_card[0])
     deck.remove(private_card[1])
     public_cards = list(itertools.combinations(deck, 5))
+    count_public_card = 0
     for public_card in public_cards:
-      ochs_vector = calculate_ochs(private_card, public_card)
-      ochs_table[(private_card, public_card)] = ochs_vector
+      ochs_vector = calculate_ochs(private_card, public_card, evaluator, opponent_clusters)
+      ochs_table[''.join(private_card) + ''.join(public_card)] = ochs_vector
+      print(ochs_vector)
+      count_public_card += 1
+      print(str(count_public_card) + "/" + str(len(public_cards)))
+    count_private_card += 1
+    print(str(count_private_card) + "/" + str(len(all_hands)))
   return ochs_table
 
-def calculate_ochs(private_card, public_card, hand_evaluator, opponent_clusters):
-  ochs_vector = []
-  for cluster in opponent_clusters:
+def calculate_ochs(private_card, public_card, evaluator, opponent_clusters):
+  ochs_vector = {}
+  private_card_object = [Card.new(card) for card in private_card]
+  public_card_object = [Card.new(card) for card in public_card]
+  for cluster_index, cluster in enumerate(opponent_clusters):
     wins = 0
-    for _ in range(NUM_SAMPLES):
-      opponent_hand = random.choice(cluster)
-      opponent_final_hand = opponent_hand + ''.join(public_card)
-      if hand_evaluator.evaluate(private_card + ''.join(public_card)) > hand_evaluator.evaluate(opponent_final_hand):
+    for i in range(0, len(cluster)):
+      opponent_hand = cluster[i]
+      if any(card in public_card for card in [opponent_hand[0:2], opponent_hand[2:4]]):
+        continue
+      opponent_hand_object = [Card.new(opponent_hand[0:2]), Card.new(opponent_hand[2:4])]
+      if evaluator.evaluate(public_card_object, private_card_object) > evaluator.evaluate(public_card_object, opponent_hand_object):
         wins += 1
-    win_probability = wins / NUM_SAMPLES
-    ochs_vector.append(win_probability)
+    ochs_vector[cluster_index] = wins
   return ochs_vector
 
 precompute_ochs_features()
