@@ -7,6 +7,14 @@ RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
 SUITS = ["c", "d", "h", "s"]
 
 def generate_starting_hands():
+  deck = []
+  for rank in RANKS:
+     for suit in SUITS:
+        deck.append(rank + suit)
+  return itertools.combinations(deck, 2)
+
+# depricated function
+def generate_starting_hands_old():
   starting_hands = []
   for i in range(13):
     for j in range(13):
@@ -98,7 +106,10 @@ def calculate_ochs(private_card, public_card, evaluator, opponent_clusters):
         for opponent_hand in cluster:
             # Kiểm tra trùng lặp giữa opponent_hand và public_card
             if any(card in public_card for card in [opponent_hand[0:2], opponent_hand[2:4]]):
-                continue
+              continue
+
+            if any(card in private_card for card in [opponent_hand[0:2], opponent_hand[2:4]]):
+              continue
 
             # Nếu không trùng lặp, thực hiện so sánh
             opponent_hand_object = [Card.new(opponent_hand[0:2]), Card.new(opponent_hand[2:4])]
