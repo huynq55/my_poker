@@ -25,6 +25,6 @@ opponent_cluster = [
   ["Th3h", "Th4h", "6h5h", "7h5h", "8h5h", "9h5h", "Th5h", "7h6h", "8h6h", "9h6h", "Th6h", "8h7h", "9h7h", "9h8h", "7h6d", "8h6d", "8h7d", "9h6d", "9h7d", "9h8d", "Th6d", "Th7d", "Th8d"],
   ["2h2d", "Jh2h", "Qh2h", "Kh2h", "Jh3h", "Qh3h", "Jh4h", "Qh4h", "Jh5h", "Qh5h", "Jh6h", "Jh4d", "Jh5d", "Jh6d", "Jh7d", "Qh2d", "Qh3d", "Qh4d", "Qh5d", "Qh6d", "Qh7d", "Kh2d", "Kh3d", "Kh4d"],
   ["Qh6h", "Th7h", "Jh7h", "Qh7h", "Th8h", "Jh8h", "Qh8h", "Th9h", "Jh9h", "Qh9h", "JhTh", "Th9d", "Jh8d", "Jh9d", "JhTd", "Qh8d", "Qh9d", "QhTd", "QhJd"],
-  ""
+  ["3h3d", "4h4d", "5h5d", "Ah2h", "Kh3h", "Ah3h", "Kh4h", "Ah4h", "Kh5h", "Ah5h", "Kh6h", "Ah6h", "Kh7h", "Kh8h", "Kh5d", "Kh6d", "Kh7d", "Kh8d", "Kh9d", "Ah2d", "Ah3d", "Ah4d", "Ah5d", "Ah6d", "Ah7d", "Ah8d"]
 ]
 
