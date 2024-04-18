@@ -27,6 +27,21 @@ opponent_cluster = [
   ["Qh6h", "Th7h", "Jh7h", "Qh7h", "Th8h", "Jh8h", "Qh8h", "Th9h", "Jh9h", "Qh9h", "JhTh", "Th9d", "Jh8d", "Jh9d", "JhTd", "Qh8d", "Qh9d", "QhTd", "QhJd"],
   ["3h3d", "4h4d", "5h5d", "Ah2h", "Kh3h", "Ah3h", "Kh4h", "Ah4h", "Kh5h", "Ah5h", "Kh6h", "Ah6h", "Kh7h", "Kh8h", "Kh5d", "Kh6d", "Kh7d", "Kh8d", "Kh9d", "Ah2d", "Ah3d", "Ah4d", "Ah5d", "Ah6d", "Ah7d", "Ah8d"],
   ["6h6d", "7h7d", "Ah7h", "Ah8h", "Kh9h", "Ah9h", "QhTh", "KhTh", "AhTh", "QhJh", "KhJh", "AhJh", "KhQh", "AhQh", "AhKh", "KhTd", "KhJd", "KhQd", "Ah9d", "AhTd", "AhJd", "AhQd", "AhKd"],
-  ["8h8d", "9h9d", "ThTd", "JhTd", "QhTd", "KhTd", "AhTd"]
+  ["8h8d", "9h9d", "ThTd", "JhJd", "QhQd", "KhKd", "AhAd"]
 ]
 
+all_hands = generate_starting_hands()
+hands_to_cluster = {}
+
+for index, cluster in enumerate(opponent_cluster):
+  for hand in cluster:
+    hands_to_cluster[hand] = index + 1
+
+for column_index, column in enumerate(["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]):
+  for row_index ,row in enumerate(["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]):
+    if column_index > row_index:
+      hand = column + 'h' + row + 'h'
+    else:
+      hand = row + 'h' + column + 'd'
+    print(hands_to_cluster[hand])
+  print("\n")
