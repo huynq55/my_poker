@@ -1,6 +1,7 @@
 import itertools
-import random
 from deuces import Evaluator, Card
+import concurrent.futures
+import json
 
 RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
 SUITS = ["c", "d", "h", "s"]
@@ -53,39 +54,69 @@ for column_index, column in enumerate(["2", "3", "4", "5", "6", "7", "8", "9", "
 
 evaluator = Evaluator()
 
-def precompute_ochs_features():
-  ochs_table = {}
-  count_private_card = 0
-  for private_card in all_hands:
+# Định nghĩa hàm process_private_card ra ngoài để có thể pickle
+def process_private_card(private_card, SUITS, RANKS, evaluator, opponent_clusters):
     deck = [RANK + SUIT for SUIT in SUITS for RANK in RANKS]
     deck.remove(private_card[0])
     deck.remove(private_card[1])
     public_cards = list(itertools.combinations(deck, 5))
+    result = {}
     count_public_card = 0
+
     for public_card in public_cards:
-      ochs_vector = calculate_ochs(private_card, public_card, evaluator, opponent_clusters)
-      ochs_table[''.join(private_card) + ''.join(public_card)] = ochs_vector
-      print(ochs_vector)
-      count_public_card += 1
-      print(str(count_public_card) + "/" + str(len(public_cards)))
-    count_private_card += 1
-    print(str(count_private_card) + "/" + str(len(all_hands)))
-  return ochs_table
+        ochs_vector = calculate_ochs(private_card, public_card, evaluator, opponent_clusters)
+        result[''.join(private_card) + ''.join(public_card)] = ochs_vector
+        count_public_card += 1
+        print(f"Processed {count_public_card}/{len(public_cards)} public hands for {private_card}")
+    return result
+
+def precompute_ochs_features():
+    ochs_table = {}
+    all_hands = generate_starting_hands()  # Giả sử rằng bạn đã có một hàm để tạo ra tất cả các lá bài riêng tư có thể có
+    SUITS = ['c', 'd', 'h', 's']  # Chỉnh sửa các biến này cho phù hợp
+    RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+
+    executor = concurrent.futures.ProcessPoolExecutor()
+    futures = [executor.submit(process_private_card, private_card, SUITS, RANKS, evaluator, opponent_clusters) for private_card in all_hands]
+    count_private_card = 0
+    for future in concurrent.futures.as_completed(futures):
+        ochs_table.update(future.result())
+        count_private_card += 1
+        print(f"Completed {count_private_card}/{len(all_hands)} private hands")
+
+    return ochs_table
 
 def calculate_ochs(private_card, public_card, evaluator, opponent_clusters):
-  ochs_vector = {}
-  private_card_object = [Card.new(card) for card in private_card]
-  public_card_object = [Card.new(card) for card in public_card]
-  for cluster_index, cluster in enumerate(opponent_clusters):
-    wins = 0
-    for i in range(0, len(cluster)):
-      opponent_hand = cluster[i]
-      if any(card in public_card for card in [opponent_hand[0:2], opponent_hand[2:4]]):
-        continue
-      opponent_hand_object = [Card.new(opponent_hand[0:2]), Card.new(opponent_hand[2:4])]
-      if evaluator.evaluate(public_card_object, private_card_object) > evaluator.evaluate(public_card_object, opponent_hand_object):
-        wins += 1
-    ochs_vector[cluster_index] = wins
-  return ochs_vector
+    ochs_vector = {}
+    private_card_object = [Card.new(card) for card in private_card]
+    public_card_object = [Card.new(card) for card in public_card]
 
-precompute_ochs_features()
+    for cluster_index, cluster in enumerate(opponent_clusters):
+        wins = 0
+        valid_comparisons = 0  # Số lần so sánh hợp lệ
+
+        for opponent_hand in cluster:
+            # Kiểm tra trùng lặp giữa opponent_hand và public_card
+            if any(card in public_card for card in [opponent_hand[0:2], opponent_hand[2:4]]):
+                continue
+
+            # Nếu không trùng lặp, thực hiện so sánh
+            opponent_hand_object = [Card.new(opponent_hand[0:2]), Card.new(opponent_hand[2:4])]
+            if evaluator.evaluate(public_card_object, private_card_object) > evaluator.evaluate(public_card_object, opponent_hand_object):
+                wins += 1
+            valid_comparisons += 1  # Tăng số lần so sánh hợp lệ
+
+        # Tính tỷ lệ thắng và lưu vào ochs_vector
+        if valid_comparisons > 0:
+            win_rate = wins / valid_comparisons
+        else:
+            win_rate = 0  # Trường hợp không có so sánh hợp lệ nào
+        ochs_vector[cluster_index] = win_rate
+
+    return ochs_vector
+
+ochs_table = precompute_ochs_features()
+
+# Ghi kết quả ra file JSON sau khi hoàn thành tính toán
+with open('ochs_table.json', 'w') as f:
+  json.dump(ochs_table, f)
