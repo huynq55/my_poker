@@ -4,7 +4,7 @@ import concurrent.futures
 import json
 
 RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
-SUITS = ["c", "d", "h", "s"]
+SUITS = ["h", "d", "c", "s"]
 
 def generate_starting_hands():
   deck = []
@@ -42,6 +42,33 @@ opponent_clusters = [
   ["6h6d", "7h7d", "Ah7h", "Ah8h", "Kh9h", "Ah9h", "QhTh", "KhTh", "AhTh", "QhJh", "KhJh", "AhJh", "KhQh", "AhQh", "AhKh", "KhTd", "KhJd", "KhQd", "Ah9d", "AhTd", "AhJd", "AhQd", "AhKd"],
   ["8h8d", "9h9d", "ThTd", "JhJd", "QhQd", "KhKd", "AhAd"]
 ]
+
+for cluster_index, cluster in enumerate(opponent_clusters):
+  new_hands = []  # Danh sách tạm để lưu các lá bài mới
+  for hand in cluster:
+    rank1, suit1 = hand[0], hand[1]
+    rank2, suit2 = hand[2], hand[3]
+    if rank1 == rank2:
+      for s1_index, s1 in enumerate(SUITS):
+        for s2_index, s2 in enumerate(SUITS):
+          if s1_index < s2_index:
+            new_hands.append(rank1 + s1 + rank2 + s2)
+    else:
+    # rank1 > rank2
+      if suit1 == suit2:
+        for s1 in SUITS:
+          for s2 in SUITS:
+            if (s1 == s2):
+              new_hands.append(rank1 + s1 + rank2 + s2)
+      else:
+        for s1 in SUITS:
+          for s2 in SUITS:
+            if (s1 != s2):
+              new_hands.append(rank1 + s1 + rank2 + s2)
+
+  # Sau khi tạo xong, thêm các lá bài mới vào cluster
+  cluster.extend(new_hands)
+  opponent_clusters[cluster_index] = list(set(cluster))
 
 all_hands = generate_starting_hands()
 hands_to_cluster = {}
@@ -126,8 +153,12 @@ def calculate_ochs(private_card, public_card, evaluator, opponent_clusters):
 
     return ochs_vector
 
-ochs_table = precompute_ochs_features()
+# ochs_table = precompute_ochs_features()
 
-# Ghi kết quả ra file JSON sau khi hoàn thành tính toán
-with open('ochs_table.json', 'w') as f:
-  json.dump(ochs_table, f)
+# # Ghi kết quả ra file JSON sau khi hoàn thành tính toán
+# with open('ochs_table.json', 'w') as f:
+#   json.dump(ochs_table, f)
+
+for i, cluster in enumerate(opponent_clusters, 1):
+    print(f"Cluster {i} has {len(cluster)} hands.")
+    print(cluster)
