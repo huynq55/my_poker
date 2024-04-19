@@ -10,6 +10,7 @@ SUITS = ["h", "d", "c", "s"]
 def generate_starting_hands():
   RANKS = ["2"]
   SUITS = ["h", "d", "c", "s"]
+  # SUITS = ["h", "d"]
   deck = []
   for rank in RANKS:
      for suit in SUITS:
@@ -135,7 +136,7 @@ def calculate_ochs(private_card, public_card, evaluator, opponent_clusters):
         wins = 0
         valid_comparisons = 0  # Số lần so sánh hợp lệ
 
-        for opponent_hand in random.sample(cluster, SAMPLES):
+        for opponent_hand in cluster:
             # Kiểm tra trùng lặp giữa opponent_hand và public_card
             if any(card in public_card for card in [opponent_hand[0:2], opponent_hand[2:4]]):
               continue
