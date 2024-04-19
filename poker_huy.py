@@ -2,11 +2,14 @@ import itertools
 from deuces import Evaluator, Card
 import concurrent.futures
 import json
+import random
 
 RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
 SUITS = ["h", "d", "c", "s"]
 
 def generate_starting_hands():
+  RANKS = ["2"]
+  SUITS = ["h", "d", "c", "s"]
   deck = []
   for rank in RANKS:
      for suit in SUITS:
@@ -71,20 +74,20 @@ for cluster_index, cluster in enumerate(opponent_clusters):
   opponent_clusters[cluster_index] = list(set(cluster))
 
 all_hands = generate_starting_hands()
-hands_to_cluster = {}
+# hands_to_cluster = {}
 
-for index, cluster in enumerate(opponent_clusters):
-  for hand in cluster:
-    hands_to_cluster[hand] = index + 1
+# for index, cluster in enumerate(opponent_clusters):
+#   for hand in cluster:
+#     hands_to_cluster[hand] = index + 1
 
-for column_index, column in enumerate(["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]):
-  for row_index ,row in enumerate(["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]):
-    if column_index > row_index:
-      hand = column + 'h' + row + 'h'
-    else:
-      hand = row + 'h' + column + 'd'
-    print(hands_to_cluster[hand])
-  print("\n")
+# for column_index, column in enumerate(["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]):
+#   for row_index ,row in enumerate(["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]):
+#     if column_index > row_index:
+#       hand = column + 'h' + row + 'h'
+#     else:
+#       hand = row + 'h' + column + 'd'
+#     print(hands_to_cluster[hand])
+#   print("\n")
 
 
 evaluator = Evaluator()
@@ -121,6 +124,8 @@ def precompute_ochs_features():
 
     return ochs_table
 
+SAMPLES = 42
+
 def calculate_ochs(private_card, public_card, evaluator, opponent_clusters):
     ochs_vector = {}
     private_card_object = [Card.new(card) for card in private_card]
@@ -130,7 +135,7 @@ def calculate_ochs(private_card, public_card, evaluator, opponent_clusters):
         wins = 0
         valid_comparisons = 0  # Số lần so sánh hợp lệ
 
-        for opponent_hand in cluster:
+        for opponent_hand in random.sample(cluster, SAMPLES):
             # Kiểm tra trùng lặp giữa opponent_hand và public_card
             if any(card in public_card for card in [opponent_hand[0:2], opponent_hand[2:4]]):
               continue
@@ -153,12 +158,12 @@ def calculate_ochs(private_card, public_card, evaluator, opponent_clusters):
 
     return ochs_vector
 
-# ochs_table = precompute_ochs_features()
+ochs_table = precompute_ochs_features()
 
-# # Ghi kết quả ra file JSON sau khi hoàn thành tính toán
-# with open('ochs_table.json', 'w') as f:
-#   json.dump(ochs_table, f)
+# Ghi kết quả ra file JSON sau khi hoàn thành tính toán
+with open('ochs_table_2.json', 'w') as f:
+  json.dump(ochs_table, f)
 
-for i, cluster in enumerate(opponent_clusters, 1):
-    print(f"Cluster {i} has {len(cluster)} hands.")
-    print(cluster)
+# for i, cluster in enumerate(opponent_clusters, 1):
+#     print(f"Cluster {i} has {len(cluster)} hands.")
+#     print(cluster)
